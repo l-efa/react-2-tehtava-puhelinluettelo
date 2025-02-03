@@ -11,6 +11,36 @@ function App() {
   const [newNumber, setNewNumber] = useState("");
   const [newParam, setNewParam] = useState("");
 
+  return (
+    <div>
+      <h2>Phonebook</h2>
+      <div>
+        <Filter setNewParam={setNewParam} newParam={newParam} />
+      </div>
+      <Form
+        newName={newName}
+        newNumber={newNumber}
+        setNewName={setNewName}
+        setNewNumber={setNewNumber}
+        persons={persons}
+        setPersons={setPersons}
+      />
+      <h2>Numbers</h2>
+      <div>
+        <Person param={newParam} persons={persons} />
+      </div>
+    </div>
+  );
+}
+
+const Form = ({
+  newName,
+  newNumber,
+  setNewName,
+  setNewNumber,
+  persons,
+  setPersons,
+}) => {
   const changeNameValue = (event) => {
     console.log(event.target);
     setNewName(event.target.value);
@@ -19,11 +49,6 @@ function App() {
   const changeNumberValue = (event) => {
     console.log(event.target);
     setNewNumber(event.target.value);
-  };
-
-  const changeParamValue = (event) => {
-    console.log(event.target);
-    setNewParam(event.target.value);
   };
 
   const addNewName = (event) => {
@@ -48,35 +73,8 @@ function App() {
     setNewNumber("");
   };
 
-  const Person = (props) => {
-    console.log(props.param);
-    const filteredPersons = props.persons.filter(
-      (person) => person.name.includes(props.param) // Check if name includes the param
-    );
-
-    return (
-      <ul>
-        {filteredPersons.map((person) => (
-          <li key={person.name}>
-            {person.name}
-            {person.number}
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
   return (
-    <div>
-      <h2>Phonebook</h2>
-      <div>
-        Filter:
-        <input
-          style={{ marginBlockEnd: 10 }}
-          onChange={changeParamValue}
-          value={newParam}
-        />
-      </div>
+    <>
       <form onSubmit={addNewName}>
         <div>
           name: <input onChange={changeNameValue} value={newName} />
@@ -89,11 +87,44 @@ function App() {
           <button type="submit">add</button>
         </div>
       </form>
-      <h2>Numbers</h2>
-      <div>
-        <Person param={newParam} persons={persons} />
-      </div>
-    </div>
+    </>
   );
-}
+};
+
+const Person = (props) => {
+  console.log(props.param);
+  const filteredPersons = props.persons.filter(
+    (person) => person.name.includes(props.param) // Check if name includes the param
+  );
+
+  return (
+    <ul>
+      {filteredPersons.map((person) => (
+        <li key={person.name}>
+          {person.name}
+          {person.number}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+const Filter = ({ setNewParam, newParam }) => {
+  const changeParamValue = (event) => {
+    console.log(event.target);
+    setNewParam(event.target.value);
+  };
+
+  return (
+    <>
+      Filter:
+      <input
+        style={{ marginBlockEnd: 10 }}
+        onChange={changeParamValue}
+        value={newParam}
+      />
+    </>
+  );
+};
+
 export default App;
