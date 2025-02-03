@@ -92,7 +92,6 @@ const Form = ({
 };
 
 const Person = (props) => {
-  console.log(props.param);
   const filteredPersons = props.persons.filter(
     (person) => person.name.includes(props.param) // Check if name includes the param
   );
