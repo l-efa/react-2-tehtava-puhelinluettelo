@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import personService from "./services/persons";
 
 function App() {
   const [persons, setPersons] = useState([]);
@@ -9,9 +10,9 @@ function App() {
 
   useEffect(() => {
     console.log("effect");
-    axios.get("http://localhost:3001/persons").then((response) => {
-      console.log("Promise fullfilled");
-      setPersons(response.data);
+    personService.getAll().then((response) => {
+      console.log(response);
+      setPersons(response);
     });
   }, []);
 
@@ -31,7 +32,7 @@ function App() {
       />
       <h2>Numbers</h2>
       <div>
-        <Person param={newParam} persons={persons} />
+        <Person param={newParam} persons={persons} setPersons={setPersons} />
       </div>
     </div>
   );
@@ -61,7 +62,23 @@ const Form = ({
     const nameExists = persons.some((person) => person.name === newName);
 
     if (nameExists) {
-      alert(`The name ${newName} already exists`);
+      if (
+        confirm(
+          `The name ${newName} already exists. Would you like to update their number?`
+        )
+      ) {
+        const person = persons.find((p) => p.name === newName);
+        console.log(person);
+        const changedNote = { ...person, number: newNumber };
+
+        personService.update(person.id, changedNote).then((response) => {
+          setPersons(
+            persons.map((person) =>
+              person.name !== newName ? person : response
+            )
+          );
+        });
+      }
       setNewName("");
       setNewNumber("");
       return;
@@ -71,10 +88,11 @@ const Form = ({
       name: newName,
       number: newNumber,
     };
-
-    setPersons(persons.concat(nameObject));
-    setNewName("");
-    setNewNumber("");
+    personService.create(nameObject).then((response) => {
+      setPersons(persons.concat(response));
+      setNewName("");
+      setNewNumber("");
+    });
   };
 
   return (
@@ -100,12 +118,19 @@ const Person = (props) => {
     (person) => person.name.includes(props.param) // Check if name includes the param
   );
 
+  const remove = (id) => {
+    personService.remove(id).then((response) => {
+      console.log(response);
+      props.setPersons(filteredPersons.filter((person) => person.id !== id));
+    });
+  };
+
   return (
     <ul>
       {filteredPersons.map((person) => (
         <li key={person.name}>
-          {person.name}
-          {person.number}
+          {person.name} {" - "} {person.number}
+          <button onClick={() => remove(person.id)}>Delete</button>
         </li>
       ))}
     </ul>
