@@ -13,6 +13,7 @@ function App() {
     console.log("effect");
     personService.getAll().then((response) => {
       console.log(response);
+      console.log(response);
       setPersons(response);
     });
   }, []);
@@ -112,17 +113,26 @@ const Form = ({
       name: newName,
       number: newNumber,
     };
-    personService.create(nameObject).then((response) => {
-      setPersons(persons.concat(response));
-      console.log(response);
+    personService
+      .create(nameObject)
+      .then((response) => {
+        setPersons(persons.concat(response));
+        console.log(response);
 
-      setErrorMessage(`Person '${response.name}' added to the server!`);
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 2000);
-      setNewName("");
-      setNewNumber("");
-    });
+        setErrorMessage(`Person '${response.name}' added to the server!`);
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 2000);
+        setNewName("");
+        setNewNumber("");
+      })
+      .catch((error) => {
+        console.log(error.response.data);
+        setErrorMessage(`${error.response.data.error}`);
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 2000);
+      });
   };
 
   return (

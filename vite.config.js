@@ -14,7 +14,8 @@ export default defineConfig({
   },
 });
 
-/*  server: {
+/*
+  server: {
     proxy: {
       "/api": {
         target: "https://react-3-tehtava-puhelinluettelo-backend.onrender.com",
