@@ -7,6 +7,7 @@ function App() {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [newParam, setNewParam] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     console.log("effect");
@@ -20,6 +21,9 @@ function App() {
     <div>
       <h2>Phonebook</h2>
       <div>
+        <Notification errorMessage={errorMessage} />
+      </div>
+      <div>
         <Filter setNewParam={setNewParam} newParam={newParam} />
       </div>
       <Form
@@ -29,6 +33,7 @@ function App() {
         setNewNumber={setNewNumber}
         persons={persons}
         setPersons={setPersons}
+        setErrorMessage={setErrorMessage}
       />
       <h2>Numbers</h2>
       <div>
@@ -38,6 +43,17 @@ function App() {
   );
 }
 
+const Notification = ({ errorMessage }) => {
+  if (errorMessage === null) {
+    return null;
+  }
+  return (
+    <div className="error">
+      <p>{errorMessage}</p>
+    </div>
+  );
+};
+
 const Form = ({
   newName,
   newNumber,
@@ -45,6 +61,7 @@ const Form = ({
   setNewNumber,
   persons,
   setPersons,
+  setErrorMessage,
 }) => {
   const changeNameValue = (event) => {
     console.log(event.target);
@@ -69,14 +86,21 @@ const Form = ({
       ) {
         const person = persons.find((p) => p.name === newName);
         console.log(person);
+        console.log(person._id);
         const changedNote = { ...person, number: newNumber };
 
-        personService.update(person.id, changedNote).then((response) => {
+        personService.update(person._id, changedNote).then((response) => {
           setPersons(
             persons.map((person) =>
               person.name !== newName ? person : response
             )
           );
+          setErrorMessage(
+            `Person '${person.name}''s number updated in the server!`
+          );
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 2000);
         });
       }
       setNewName("");
@@ -90,6 +114,12 @@ const Form = ({
     };
     personService.create(nameObject).then((response) => {
       setPersons(persons.concat(response));
+      console.log(response);
+
+      setErrorMessage(`Person '${response.name}' added to the server!`);
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 2000);
       setNewName("");
       setNewNumber("");
     });
@@ -113,24 +143,38 @@ const Form = ({
   );
 };
 
-const Person = (props) => {
-  const filteredPersons = props.persons.filter(
-    (person) => person.name.includes(props.param) // Check if name includes the param
+const Person = ({ param, persons, setPersons }) => {
+  console.log("persons: ", persons);
+  const filteredPersons = persons.filter((person) =>
+    person.name.includes(param)
   );
 
   const remove = (id) => {
-    personService.remove(id).then((response) => {
-      console.log(response);
-      props.setPersons(filteredPersons.filter((person) => person.id !== id));
-    });
+    console.log("Removing ID:", id);
+
+    personService
+      .remove(id)
+      .then((response) => {
+        console.log("Deleted:", response);
+        setPersons((prevPersons) => {
+          const updatedPersons = prevPersons.filter(
+            (person) => person._id !== id
+          );
+          console.log("Updated persons list:", updatedPersons);
+          return [...updatedPersons]; // Ensures a new array reference
+        });
+      })
+      .catch((error) => {
+        console.error("Error deleting person:", error);
+      });
   };
 
   return (
     <ul>
       {filteredPersons.map((person) => (
-        <li key={person.name}>
+        <li key={person._id}>
           {person.name} {" - "} {person.number}
-          <button onClick={() => remove(person.id)}>Delete</button>
+          <button onClick={() => remove(person._id)}>Delete</button>
         </li>
       ))}
     </ul>
